@@ -57,17 +57,3 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
-
-# ── App secrets ────────────────────────────────────────────────────────────
-
-variable "auth_master_key" {
-  description = "MASTER_KEY for auth-service admin endpoints"
-  type        = string
-  sensitive   = true
-}
-
-variable "service_api_key" {
-  description = "Shared API key for inter-service calls"
-  type        = string
-  sensitive   = true
-}

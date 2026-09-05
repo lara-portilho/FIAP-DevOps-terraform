@@ -12,7 +12,3 @@ eks_node_max           = 4
 db_instance_class = "db.t3.micro"
 db_username       = "postgres"
 db_password       = "CHANGE_ME_strong_password_123"
-
-# App secrets
-auth_master_key = "CHANGE_ME_master_key"
-service_api_key = "CHANGE_ME_service_api_key"

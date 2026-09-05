@@ -10,7 +10,7 @@ resource "helm_release" "metrics_server" {
     value = "--kubelet-insecure-tls"
   }
 
-  depends_on = [aws_eks_node_group.main]
+  depends_on = [module.eks]
 }
 
 resource "helm_release" "nginx_ingress" {
@@ -31,5 +31,5 @@ resource "helm_release" "nginx_ingress" {
     value = "nlb"
   }
 
-  depends_on = [aws_eks_node_group.main]
+  depends_on = [module.eks]
 }

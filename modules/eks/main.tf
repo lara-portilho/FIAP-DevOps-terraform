@@ -20,19 +20,19 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
 }
 
 resource "aws_eks_cluster" "main" {
-  name     = "${var.project_name}-cluster"
+  name     = var.cluster_name
   role_arn = aws_iam_role.eks_cluster.arn
   version  = "1.32"
 
   vpc_config {
-    subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
+    subnet_ids              = concat(var.public_subnet_ids, var.private_subnet_ids)
     endpoint_public_access  = true
     endpoint_private_access = true
   }
 
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 
-  tags = { Name = "${var.project_name}-cluster" }
+  tags = { Name = var.cluster_name }
 }
 
 # ── Node Group IAM ──────────────────────────────────────────────────────────
@@ -100,8 +100,8 @@ resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.project_name}-nodes"
   node_role_arn   = aws_iam_role.eks_nodes.arn
-  subnet_ids      = aws_subnet.private[*].id
-  instance_types  = [var.eks_node_instance_type]
+  subnet_ids      = var.private_subnet_ids
+  instance_types  = [var.node_instance_type]
 
   launch_template {
     id      = aws_launch_template.eks_nodes.id
@@ -109,9 +109,9 @@ resource "aws_eks_node_group" "main" {
   }
 
   scaling_config {
-    min_size     = var.eks_node_min
-    desired_size = var.eks_node_desired
-    max_size     = var.eks_node_max
+    min_size     = var.node_min
+    desired_size = var.node_desired
+    max_size     = var.node_max
   }
 
   update_config {
