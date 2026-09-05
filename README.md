@@ -10,12 +10,12 @@ Infraestrutura como codigo para o Tech Challenge Fase 3. O projeto provisiona a 
 - Tres bancos PostgreSQL no Amazon RDS
 - Redis no Amazon ElastiCache
 - Fila Amazon SQS e tabela DynamoDB para analytics
-- Metrics Server e Nginx Ingress via Helm (add-ons de plataforma do cluster)
+- Metrics Server, Nginx Ingress e ArgoCD via Helm (add-ons de plataforma do cluster)
 
-Este repositorio cobre **apenas infraestrutura** (Requisito 1 do Tech Challenge Fase 3). Namespace,
-Secrets, ConfigMaps, Deployments, Services, Ingress das aplicacoes, HPAs e o ArgoCD **nao** sao
-provisionados aqui — ficam no repositorio de GitOps (CD) e na instalacao do ArgoCD, feitos por outra
-frente do time. Veja "Integracao com GitOps/ArgoCD" abaixo.
+Este repositorio cobre a infraestrutura (Requisito 1 do Tech Challenge Fase 3) + a instalacao do ArgoCD.
+Namespace, Secrets, ConfigMaps, Deployments, Services, Ingress das aplicacoes e HPAs **nao** sao
+provisionados aqui — ficam no repositorio `FIAP-DevOps-kubernetes` (GitOps), sincronizados pelo ArgoCD
+instalado por este Terraform. Veja "Integracao com GitOps/ArgoCD" abaixo.
 
 ## Pre-requisitos
 
@@ -82,9 +82,9 @@ Em ambiente AWS Academy, a LabRole existente deve ser usada e o projeto nao pode
 
 ## Integracao com GitOps/ArgoCD
 
-Este repositorio nao instala o ArgoCD nem cria manifestos Kubernetes das aplicacoes — isso e responsabilidade
-do repositorio de GitOps (CD) e de quem instala/configura o ArgoCD. Depois do `terraform apply`, quem for
-montar os manifestos ou os Secrets das aplicacoes precisa dos valores abaixo, disponiveis via `terraform output`:
+Este repositorio instala o ArgoCD (`helm_release.argocd`, namespace `argocd`) mas nao cria nenhum manifesto
+Kubernetes das aplicacoes — isso fica no repositorio `FIAP-DevOps-kubernetes`. Depois do `terraform apply`,
+para montar os Secrets desse repositorio, use os valores abaixo:
 
 ```bash
 terraform output ecr_repositories     # URLs dos 5 repositorios ECR (imagem por servico)
@@ -96,9 +96,21 @@ terraform output eks_cluster_name     # nome do cluster, para update-kubeconfig
 ```
 
 O namespace `togglemaster`, os Secrets com as connection strings acima, os Deployments/Services/Ingress dos 5
-microsservicos e os HPAs devem ser criados pelos manifestos do repositorio de GitOps (sincronizados pelo
+microsservicos e os HPAs sao criados pelos manifestos do `FIAP-DevOps-kubernetes` (sincronizados pelo
 ArgoCD) — nao pelo Terraform. O Nginx Ingress Controller (`helm.tf`) ja fica disponivel no cluster para esse
 Ingress apontar.
+
+### Acessar a interface do ArgoCD
+
+```bash
+kubectl -n argocd port-forward svc/argocd-server 8080:443
+# senha admin inicial:
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+```
+
+Abra `https://localhost:8080`, usuario `admin` + a senha acima. Depois de aplicar os manifestos de
+`argocd/` do repositorio `FIAP-DevOps-kubernetes` (`kubectl apply -f argocd/`), os 6 Applications
+(plataforma + 5 microsservicos) aparecem nessa interface.
 
 ## Estrutura
 
@@ -111,7 +123,7 @@ cada um passando as variaveis necessarias e liga as saidas de um modulo como ent
 ├── variables.tf             # variaveis do projeto (region, tamanhos, credenciais de banco)
 ├── outputs.tf                # agrega as saidas dos modulos (ECR, RDS, Redis, SQS, DynamoDB, EKS)
 ├── backend.tf                # backend remoto S3
-├── helm.tf                   # add-ons de plataforma: Metrics Server e Nginx Ingress
+├── helm.tf                   # add-ons de plataforma: Metrics Server, Nginx Ingress e ArgoCD
 └── modules/
     ├── networking/           # VPC, subnets publicas/privadas, IGW, NAT, route tables, VPC endpoints
     ├── eks/                  # IAM roles, cluster EKS, security group e node group
