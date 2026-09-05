@@ -102,15 +102,26 @@ Ingress apontar.
 
 ### Acessar a interface do ArgoCD
 
+O `server.service` do ArgoCD e um `LoadBalancer` dedicado (NLB), separado do Load Balancer do Nginx
+Ingress usado pelas aplicacoes. Depois do `terraform apply`, o hostname leva alguns minutos pra ficar
+disponivel:
+
 ```bash
-kubectl -n argocd port-forward svc/argocd-server 8080:443
+kubectl -n argocd get svc argocd-server
+# aguarde a coluna EXTERNAL-IP preencher com um hostname *.elb.amazonaws.com
+
 # senha admin inicial:
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
 ```
 
-Abra `https://localhost:8080`, usuario `admin` + a senha acima. Depois de aplicar os manifestos de
-`argocd/` do repositorio `FIAP-DevOps-kubernetes` (`kubectl apply -f argocd/`), os 6 Applications
-(plataforma + 5 microsservicos) aparecem nessa interface.
+Abra `https://<EXTERNAL-IP-do-svc>` no navegador (o certificado e autoassinado, o navegador vai avisar —
+aceite o risco), usuario `admin` + a senha acima. Esse endereco pode ser compartilhado com o time, sem
+precisar de `port-forward` nem VPN. Depois de aplicar os manifestos de `argocd/` do repositorio
+`FIAP-DevOps-kubernetes` (`kubectl apply -f argocd/`), os 6 Applications (plataforma + 5 microsservicos)
+aparecem nessa interface.
+
+Esse Load Balancer extra tem um custo pequeno (~US$0,60/dia) enquanto o cluster existir — lembre de
+`terraform destroy` quando terminar de gravar o video.
 
 ## Estrutura
 

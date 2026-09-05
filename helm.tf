@@ -44,7 +44,12 @@ resource "helm_release" "argocd" {
 
   set {
     name  = "server.service.type"
-    value = "ClusterIP"
+    value = "LoadBalancer"
+  }
+
+  set {
+    name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
+    value = "nlb"
   }
 
   depends_on = [module.eks]
