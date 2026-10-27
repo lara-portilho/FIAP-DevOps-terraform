@@ -18,10 +18,13 @@ variable "environment" {
 
 # ── EKS ────────────────────────────────────────────────────────────────────
 
+# m7i-flex.large (2 vCPU, 8 GB, ate 29 pods/no) e "Free Tier eligible" -- contas no
+# plano gratuito da AWS nao podem usar t3.medium. t3.small (11 pods/no, 2 GB) nao
+# comporta a stack de observabilidade (Prometheus, Grafana, Loki, Alloy) da Fase 4.
 variable "eks_node_instance_type" {
   description = "EC2 instance type for EKS nodes"
   type        = string
-  default     = "t3.small"
+  default     = "m7i-flex.large"
 }
 
 variable "eks_node_min" {
