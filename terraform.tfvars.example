@@ -12,3 +12,6 @@ eks_node_max           = 4
 db_instance_class = "db.t3.micro"
 db_username       = "postgres"
 db_password       = "CHANGE_ME_strong_password_123"
+
+# Self-Healing: usuario IAM dedicado ao workflow self-healing (criado pelo console, fora do Terraform)
+# self_healing_iam_user_name = "togglemaster-self-healing"
