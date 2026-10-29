@@ -30,6 +30,13 @@ resource "aws_eks_cluster" "main" {
     endpoint_private_access = true
   }
 
+  # API_AND_CONFIG_MAP habilita EKS access entries (usado pelo self-healing) sem quebrar o acesso atual.
+  # bootstrap_cluster_creator_admin_permissions fica true (o padrão atual) para não recriar o cluster.
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 
   tags = { Name = var.cluster_name }
